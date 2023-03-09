@@ -38,4 +38,4 @@ out/
 .vscode/
 
 
-src/main/resourcesapplication-API-KEY.properties
+main/resourcesapplication-API-KEY.properties
