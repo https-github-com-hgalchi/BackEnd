@@ -1,6 +1,6 @@
 # BackEnd
 
-###2. Set google properties in your application.properties
+### 2. Set google properties in your application.properties
 
 ```yml
 google.client.key=xxxxxxxx
