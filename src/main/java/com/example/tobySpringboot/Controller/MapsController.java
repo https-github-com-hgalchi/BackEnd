@@ -29,7 +29,6 @@ public class MapsController {
     @GetMapping("/getLocation")
     public ResponseEntity<MapRespDto> getLocation(@RequestParam Map<String, String> data) {
 
-        System.out.println(data.get("lat"));
         String latlng = data.get("lat") + "," + data.get("lng");
         ArrayList<Map<String,JsonNode>> body = mapsService.geolocation(latlng);
 
@@ -40,8 +39,6 @@ public class MapsController {
                         .body(body)
                         .status(Location_OK)
                         .build());
-
-
 
     }
 

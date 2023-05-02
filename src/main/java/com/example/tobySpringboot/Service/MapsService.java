@@ -56,6 +56,9 @@ public class MapsService {
 
         map.put("formatted_address", temp.path("results")
                 .get(0).path("formatted_address"));
+
+        result.add(map);
+
         return result;
 
     }
@@ -109,14 +112,13 @@ public class MapsService {
                             Map<String, JsonNode> map = new HashMap<>();
                             map.put("dutyAddr",i.path("dutyAddr"));
                             map.put("dutyName",i.path("dutyName"));
-                            map.put("dutyDivName", i.path("dutyDivName"));
+                            map.put("dutyDivName", i.path("dutyDivNam"));
                             map.put("dutyTell", i.path("dutyTel1"));
                             map.put("dutyTime", i.path("dutyTime1c"+i.path("dutyTime1s")));
                             map.put("wgs84Lat",i.path("wgs84Lat"));
                             map.put("wgs84Lon",i.path("wgs84Lon"));
 
                             Iterator<String> names=i.fieldNames();
-
                             while (names.hasNext()) {
                                 String str=names.next();
                                 if (str.startsWith("dutyTime")) {
