@@ -1,11 +1,14 @@
 package com.example.tobySpringboot.Dto;
 
 import com.example.tobySpringboot.Enum.Status;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Builder;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
-import java.util.Stack;
+import java.util.ArrayList;
+import java.util.Map;
 
 @Getter
 public class MapRespDto {
@@ -13,12 +16,15 @@ public class MapRespDto {
     private final HttpStatus status;
     private final String code;
     private final String message;
-    private final String formatted_address;
 
-    public MapRespDto(String formatted_address, Status status){
+    private final ArrayList<Map<String,JsonNode>> body;
+
+    @Builder
+    public MapRespDto(Status status, ArrayList<Map<String,JsonNode>> body){
         this.status = status.getStatus();
         this.code =status.name();
         this.message = status.getMessage();
-        this.formatted_address=formatted_address;
+        this.body = body;
     }
+
 }

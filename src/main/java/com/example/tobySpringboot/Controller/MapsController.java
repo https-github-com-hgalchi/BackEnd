@@ -1,21 +1,21 @@
 package com.example.tobySpringboot.Controller;
 
 import com.example.tobySpringboot.Dto.MapRespDto;
+import com.example.tobySpringboot.Enum.Constant;
+import com.example.tobySpringboot.Enum.Status;
 import com.example.tobySpringboot.Service.MapsService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.json.simple.parser.ParseException;
 import org.springframework.http.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
+import java.util.*;
 
+import static com.example.tobySpringboot.Enum.Status.EMERGENCY_OK;
 import static com.example.tobySpringboot.Enum.Status.Location_OK;
 
 @RestController
@@ -25,37 +25,39 @@ public class MapsController {
 
     private final MapsService mapsService;
 
-
-    //현재 위치를 위도와 경도로 반환합니다.
-    /*@GetMapping("/location")
-    public JsonNode geolocation() {
-        String url = "https://www.googleapis.com/geolocation/v1/geolocate"
-                + "?key=" + key;
-
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-        ResponseEntity<JsonNode> response = restTemplate.exchange(
-                url,
-                HttpMethod.POST,
-                entity,
-                JsonNode.class);
-
-
-        return response.getBody();
-    }
-*/
     //위도와 경도를 주소로 반환합니다.
-    @GetMapping("/location")
-    public ResponseEntity<MapRespDto> geolocation(@RequestParam Map<String,String>data) {
+    @GetMapping("/getLocation")
+    public ResponseEntity<MapRespDto> getLocation(@RequestParam Map<String, String> data) {
 
-        String latlng=data.get("lat")+","+data.get("lng");
-        String formatted_address= mapsService.geolocation(latlng);
+        System.out.println(data.get("lat"));
+        String latlng = data.get("lat") + "," + data.get("lng");
+        ArrayList<Map<String,JsonNode>> body = mapsService.geolocation(latlng);
+
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new MapRespDto(formatted_address,Location_OK));
+                .body(MapRespDto.builder()
+                        .body(body)
+                        .status(Location_OK)
+                        .build());
 
+
+
+    }
+
+    //주변 응급실,병원,AED위치 제공
+    @GetMapping("/getLocationNear/{findtype}")
+    public ResponseEntity<MapRespDto> getLocationNear(@PathVariable(name="findtype") String findtype, @RequestParam String addr) throws UnsupportedEncodingException, URISyntaxException, ParseException, JsonProcessingException {
+
+        Constant type = Constant.valueOf(findtype);
+        ArrayList<Map<String,JsonNode>> body = mapsService.getmedical(type,addr);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(MapRespDto.builder()
+                        .body(body)
+                        .status(Status.valueOf(findtype+"_OK"))
+                        .build());
     }
 
 }
