@@ -4,5 +4,8 @@
 
 ```yml
 google.client.key=xxxxxxxx
-#google api key는 https://cloud.google.com/api에서 발급받을 수 있습니다. 
+#https://cloud.google.com/api에서 발급받을 수 있습니다. 
+
+data.client.key=xxxxx
+#https://www.data.go.kr/ 에서 발급받을 수 있습니다. 
 ```
