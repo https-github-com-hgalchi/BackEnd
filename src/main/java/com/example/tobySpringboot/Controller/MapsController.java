@@ -29,7 +29,7 @@ public class MapsController {
     @GetMapping("/getLocation")
     public ResponseEntity<MapRespDto> getLocation(@RequestParam Map<String, String> data) {
 
-        String latlng = data.get("lat") + "," + data.get("lng");
+        String latlng = data.get("latitude") + "," + data.get("longitude");
         ArrayList<Map<String,JsonNode>> body = mapsService.geolocation(latlng);
         System.out.println(body);
 
