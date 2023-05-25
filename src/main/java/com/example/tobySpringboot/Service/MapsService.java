@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.tomcat.util.bcel.Const;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -31,7 +30,9 @@ public class MapsService {
 
     private final RestTemplate restTemplate;
 
-    public MapsService(){
+    private final Distance distance;
+    public MapsService(Distance distance){
+        this.distance = distance;
         this.restTemplate=new RestTemplate();
     }
     public ArrayList<Map<String,JsonNode>>  geolocation(String latlng){
@@ -63,12 +64,18 @@ public class MapsService {
 
     }
 
+
     //가까운 응급실 반환
-    public ArrayList<Map<String,JsonNode>> getmedical(Constant findtype,String addr)
+    public ArrayList<Map<String,Object>> getLocationNear(Constant findtype,String addr)
             throws URISyntaxException, ParseException, JsonProcessingException {
 
         String endpoint = null;
         String url;
+//lat=37.336059&lng=127.249637
+        Double lat = 37.511079399088445;
+            Double lng=127.09816380000012;
+
+
 
         switch (findtype) {
             case HOSPITAL:{
@@ -87,8 +94,9 @@ public class MapsService {
 
         url=endpoint+ "?serviceKey="+serviceKey+
                 "&Q0="+URLEncoder.encode(addr)+
+                "&ORD=ADDR"+
                 "&pageNo=1" +
-                "&numOfRows=30";
+                "&numOfRows=100";
 
         URI uri = new URI(url.toString());
         HttpHeaders headers = new HttpHeaders();
@@ -103,41 +111,54 @@ public class MapsService {
 
         JsonNode temp = new ObjectMapper().readTree(response.getBody());
 
-        ArrayList<Map<String,JsonNode>> result = new ArrayList<>();
+        ArrayList<Map<String,Object>> result = new ArrayList<>();
+
         ObjectNode updatedJsonNode =  JsonNodeFactory.instance.objectNode();
 
         temp.path("response")
                 .path("body").path("items").path("item")
                         .forEach(i-> {
-                            Map<String, JsonNode> map = new HashMap<>();
-                            map.put("dutyAddr",i.path("dutyAddr"));
-                            map.put("dutyName",i.path("dutyName"));
-                            map.put("dutyDivName", i.path("dutyDivNam"));
-                            map.put("dutyTell", i.path("dutyTel1"));
-                            map.put("dutyTime", i.path("dutyTime1c"+i.path("dutyTime1s")));
-                            map.put("wgs84Lat",i.path("wgs84Lat"));
-                            map.put("wgs84Lon",i.path("wgs84Lon"));
+                                Map<String, Object> map = new LinkedHashMap<>();
+                              map.put("dutyName",i.path("dutyName"));
+                                map.put("dutyAddr",i.path("dutyAddr"));
+                                map.put("dutyDivName", i.path("dutyDivNam"));
+                                map.put("dutyTell", i.path("dutyTel1"));
+                                map.put("dutyTime", i.path("dutyTime1c"+i.path("dutyTime1s")));
+                                map.put("wgs84Lat",i.path("wgs84Lat"));
+                                map.put("wgs84Lon",i.path("wgs84Lon"));
 
-                            Iterator<String> names=i.fieldNames();
-                            while (names.hasNext()) {
-                                String str=names.next();
-                                if (str.startsWith("dutyTime")) {
-                                    updatedJsonNode.put(str, i.path(str));
+
+                                //dutytime 묶기
+                                Iterator<String> names=i.fieldNames();
+                                while (names.hasNext()) {
+                                    String str=names.next();
+                                    if (str.startsWith("dutyTime")) {
+                                        updatedJsonNode.put(str, i.path(str));
+                                    }
                                 }
-                            }
-                            map.put("dutyTime", updatedJsonNode);
+                                map.put("dutyTime", updatedJsonNode);
 
-
-                            Iterator<String> iter=map.keySet().iterator();
-                            while (iter.hasNext()) {
-                                String str= iter.next();
-                                if (map.get(str).getClass() == MissingNode.class) {
-                                    iter.remove();
+                                // 수정사항 dutytime이 빈 객체일 때 거르기
+                                Iterator<String> iter=map.keySet().iterator();
+                                while (iter.hasNext()) {
+                                    String str= iter.next();
+                                    if (map.get(str).getClass() == MissingNode.class) {
+                                        iter.remove();
+                                    }
                                 }
-                            }
 
-                            result.add(map);
+                            map.put("distance",distance.getdistance(lat, lng, i.path("wgs84Lat").asDouble(), i.path("wgs84Lon").asDouble()));
+
+                                result.add(map);
+
                         });
+
+        //result의 거리 key값의 value를 오름차순으로 정렬
+
+        Collections.sort(result, Comparator.comparing(m ->Double.parseDouble( m.get("distance").toString())));
+        for(Map<String,Object> map:result)
+            System.out.println(map);
+
 
 
         return result;
