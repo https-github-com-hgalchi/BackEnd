@@ -35,7 +35,10 @@ public class MapsService {
         this.distance = distance;
         this.restTemplate=new RestTemplate();
     }
-    public ArrayList<Map<String,JsonNode>>  geolocation(String latlng){
+    public ArrayList<Map<String,JsonNode>>  geolocation(Map<String,String>data){
+
+        String latlng = data.get("lat") + "," + data.get("lng");
+
         String url = "https://maps.googleapis.com/maps/api/geocode/json?latlng="+latlng
                 +"&language="+language
                 + "&key=" + key;
@@ -66,23 +69,25 @@ public class MapsService {
 
 
     //가까운 응급실 반환
-    public ArrayList<Map<String,Object>> getLocationNear(Constant findtype,String addr)
+    public ArrayList<Map<String,Object>> getLocationNear(Constant findtype,Map<String,String> data)
             throws URISyntaxException, ParseException, JsonProcessingException {
 
         String endpoint = null;
         String url;
-//lat=37.336059&lng=127.249637
-        Double lat = 37.511079399088445;
-            Double lng=127.09816380000012;
+        String addr=null;
 
+        //위도,경도를 주소로 변환
+        String[] addrlist = geolocation(data).get(0).get("formatted_address").toString().split(" ");
 
 
         switch (findtype) {
             case HOSPITAL:{
                 endpoint = "http://apis.data.go.kr/B552657/HsptlAsembySearchService/getHsptlMdcncListInfoInqire";
+                addr = addrlist[2] + addrlist[3]+addrlist[4].substring(0, (addrlist[4].length() - 1));
             }break;
             case EMERGENCY:{
                 endpoint = "http://apis.data.go.kr/B552657/ErmctInfoInqireService/getEgytListInfoInqire";
+                addr = addrlist[2];
             }break;
             case AED:{
                 endpoint = "http://apis.data.go.kr/B552657/AEDInfoInqireService/getEgytAedManageInfoInqire";
@@ -92,11 +97,15 @@ public class MapsService {
             }
         };
 
+        System.out.println(addr);
+
         url=endpoint+ "?serviceKey="+serviceKey+
                 "&Q0="+URLEncoder.encode(addr)+
                 "&ORD=ADDR"+
                 "&pageNo=1" +
                 "&numOfRows=100";
+
+
 
         URI uri = new URI(url.toString());
         HttpHeaders headers = new HttpHeaders();
@@ -119,7 +128,7 @@ public class MapsService {
                 .path("body").path("items").path("item")
                         .forEach(i-> {
                                 Map<String, Object> map = new LinkedHashMap<>();
-                              map.put("dutyName",i.path("dutyName"));
+                                map.put("dutyName",i.path("dutyName"));
                                 map.put("dutyAddr",i.path("dutyAddr"));
                                 map.put("dutyDivName", i.path("dutyDivNam"));
                                 map.put("dutyTell", i.path("dutyTel1"));
@@ -147,7 +156,7 @@ public class MapsService {
                                     }
                                 }
 
-                            map.put("distance",distance.getdistance(lat, lng, i.path("wgs84Lat").asDouble(), i.path("wgs84Lon").asDouble()));
+                            map.put("distance",distance.getdistance(data, i.path("wgs84Lat").asDouble(), i.path("wgs84Lon").asDouble()));
 
                                 result.add(map);
 
@@ -156,8 +165,8 @@ public class MapsService {
         //result의 거리 key값의 value를 오름차순으로 정렬
 
         Collections.sort(result, Comparator.comparing(m ->Double.parseDouble( m.get("distance").toString())));
-        for(Map<String,Object> map:result)
-            System.out.println(map);
+      /*  for(Map<String,Object> map:result)
+            System.out.println(map);*/
 
 
 

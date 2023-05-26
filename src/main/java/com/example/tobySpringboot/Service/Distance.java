@@ -4,15 +4,19 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Service
 public class Distance {
 
 
-    public double getdistance(double lat1, double lon1, double lat2, double lon2) {
-        double theta, dist;
+    public double getdistance(Map<String,String> data, double lat2, double lon2) {
+            double theta, dist;
+        Double lat = Double.parseDouble(data.get("lat"));
+        Double lng = Double.parseDouble(data.get("lng"));
 
-            theta = lon1 - lon2;
-            dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+            theta = lng - lon2;
+            dist = Math.sin(deg2rad(lat)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
             dist = Math.acos(dist);
             dist = rad2deg(dist);
             dist = dist * 60 * 1.1515;
@@ -27,7 +31,7 @@ public class Distance {
                     dist = dist * 0.8684;
                     break;
             }*/
-            System.out.println("두 좌표간 거리는 "+dist);
+            //System.out.println("두 좌표간 거리는 "+dist);
             return (dist);
         }
 

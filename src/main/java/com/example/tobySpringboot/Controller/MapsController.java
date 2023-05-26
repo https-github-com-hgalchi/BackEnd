@@ -29,9 +29,8 @@ public class MapsController {
     @GetMapping("/getLocation")
     public ResponseEntity<MapRespDto> getLocation(@RequestParam Map<String, String> data) {
 
-        String latlng = data.get("latitude") + "," + data.get("longitude");
-        ArrayList<Map<String,JsonNode>> body = mapsService.geolocation(latlng);
-        System.out.println(body);
+        ArrayList<Map<String,JsonNode>> body = mapsService.geolocation(data);
+        //System.out.println(body);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -44,10 +43,13 @@ public class MapsController {
 
     //주변 응급실,병원,AED위치 제공
     @GetMapping("/getLocationNear/{findtype}")
-    public ResponseEntity<MapRespDto> getLocationNear(@PathVariable(name="findtype") String findtype, @RequestParam String addr) throws UnsupportedEncodingException, URISyntaxException, ParseException, JsonProcessingException {
+    public ResponseEntity<MapRespDto> getLocationNear(@PathVariable(name="findtype") String findtype, @RequestParam Map<String,String>data) throws UnsupportedEncodingException, URISyntaxException, ParseException, JsonProcessingException {
 
+        Double lat = Double.parseDouble(data.get("lat"));
+        Double lng = Double.parseDouble(data.get("lng"));
         Constant type = Constant.valueOf(findtype);
-        ArrayList<Map<String,Object>> body1 = mapsService.getLocationNear(type,addr);
+
+        ArrayList<Map<String, Object>> body1 = mapsService.getLocationNear(type,data);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
