@@ -13,9 +13,20 @@
 ### 2. Set google properties in your application.properties
 
 ```yml
+#[google]
 google.client.key=xxxxxxxx
 #https://cloud.google.com/api에서 발급받을 수 있습니다. 
 
+#[dasta]
 data.client.key=xxxxx
+
 #https://www.data.go.kr/ 에서 발급받을 수 있습니다. 
+
+
+#[openai]
+openai.api.key=xxxxx
+openai.model=gpt-3.5-turbo
+openai.api.url=https://api.openai.com/v1/chat/completions
+
+#https://platform.openai.com/account/api-keys에서 발급받을 수 있습니다. 
 ```
